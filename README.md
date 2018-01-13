@@ -102,7 +102,7 @@ const filter = match(
 ```js
 const range = match(
   (N) =>
-    range(1, N, 1),
+    range(1, N),
   (N, M) =>
     [], when((N, M) => N > M),
   (N, M) =>

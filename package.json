@@ -1,0 +1,26 @@
+{
+  "name": "@yuanchuan/match",
+  "version": "1.0.0",
+  "description": "Erlang-like pattern matching in JavaScript",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuanchuan/match.git"
+  },
+  "keywords": [
+    "erlang",
+    "pattern-matching"
+  ],
+  "author": "yuanchuan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yuanchuan/match/issues"
+  },
+  "homepage": "https://github.com/yuanchuan/match#readme"
+}

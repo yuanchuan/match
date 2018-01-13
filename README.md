@@ -68,3 +68,62 @@ const fib = match(
 // 6765
 fib(20);
 ```
+
+## More examples
+
+**map**
+
+```js
+const map = match(
+  (L, F) =>
+    map(L, F, []),
+  ([], F, L1) =>
+    L1,
+  ([H, ...T], F, L1) =>
+    map(T, F, [...L1, F(H)])
+);
+```
+
+**filter**
+
+```js
+const filter = match(
+  (L, F) =>
+    filter(L, F, []),
+  ([], _, L1) =>
+    L1,
+  ([H, ...T], F, L1) =>
+    filter(T, F, F(H) ? [...L1, H] : L1)
+);
+```
+
+**range**
+
+```js
+const range = match(
+  (N) =>
+    range(1, N, 1),
+  (N, M) =>
+    [], when((N, M) => N > M),
+  (N, M) =>
+    range(N, M, []),
+  (N, M, L) =>
+    [...L, M], when((N, M) => N == M),
+  (N, M, L) =>
+    range(N + 1, M, [...L, N])
+);
+```
+
+**foldr**
+
+```js
+const foldr = match(
+  ([], F, Acc) =>
+    Acc,
+  ([H, ...T], F, Acc) =>
+    F(foldr(T, F, Acc), H)
+);
+
+const reverse = L =>
+  foldr(L, (Acc, N) => [...Acc, N], []);
+```

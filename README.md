@@ -27,8 +27,8 @@ Unlike the [proposal-pattern-matching](https://github.com/tc39/proposal-pattern-
 
 ```js
 const greeting = match(
-  (User) => greeting(Str, "Hi"),
-  (User, Words) => `${Words} ${User}!`
+  (Name) => greeting(Name, "Hi"),
+  (Name, Words) => `${Words} ${Name}!`
 );
 
 // Hi Ana!

@@ -10,7 +10,7 @@ const makeMark = type => ({
   check(fn) {
     if (!fn) return false;
     let { name, type } = this.symbol;
-    return fn[name] == type;
+    return fn[name] === type;
   }
 });
 
@@ -48,8 +48,8 @@ function getArgTypeList(def) {
 function matchArgs(args, typeList) {
   for (let i = 0; i < typeList.length; ++i) {
     let type = typeList[i], arg = args[i];
-    if (type.name == 'empty') {
-      return (JSON.stringify(arg) == type.value);
+    if (type.name === 'empty') {
+      return (JSON.stringify(arg) === type.value);
     }
     return true;
   }
@@ -57,12 +57,12 @@ function matchArgs(args, typeList) {
 
 function when(...guards) {
   return condMark.add((...args) => guards.every(cond => {
-    if (typeof(cond) == 'boolean') {
+    if (typeof cond === 'boolean') {
       cond = () => cond;
     } else if (typeof cond !== 'function') {
       cond = () => false;
     }
-    return cond(...args)
+    return cond(...args);
   }));
 }
 
@@ -72,11 +72,14 @@ function match(...defs) {
     let argsLength = args.length;
     for (let i = 0; i < groups.length; ++i) {
       let { def, cond } = groups[i];
-      if (argsLength != def.length) continue;
-      let isTypeMatched = matchArgs(args, getArgTypeList(def));
-      if ((!cond && isTypeMatched)
-        || (cond && cond(...args) && isTypeMatched)) {
-          return def(...args);
+      if (argsLength != def.length) {
+        continue;
+      }
+      if (cond && !cond(...args)) {
+        continue;
+      }
+      if (matchArgs(args, getArgTypeList(def))) {
+        return def(...args);
       }
     }
   }

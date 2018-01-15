@@ -15,6 +15,30 @@ const makeMark = type => ({
 });
 
 const condMark = makeMark('condition');
+const cachedArgTypeList = new WeakMap();
+
+function getArgTypeList(def) {
+  let typeList = cachedArgTypeList.get(def);
+  if (typeList) return typeList;
+
+  let args = String(def).match(/\((.+)\) (=>|\{)/) || [];
+  args = (args[1] || '').split(/, /);
+
+  cachedArgTypeList.set(def, typeList = args.map(arg => {
+    let type = 'normal';
+    if (/^\[\s*\]$|^\{\s*\}$/.test(arg)) {
+      type = 'empty';
+    }
+    else if (/^_+$/.test(arg)) {
+      type = 'any';
+    }
+    return {
+      name: type, value: arg
+    }
+  }));
+
+  return typeList;
+}
 
 function toGroup(defs) {
   return defs.reduce((group, def, i) => {
@@ -27,24 +51,6 @@ function toGroup(defs) {
   }, []);
 }
 
-function getArgTypeList(def) {
-  let reg = /\((.+)\) (=>|\{)/;
-  let args = String(def).match(reg) || [];
-  args = (args[1] || '').split(/, /);
-  return args.map(arg => {
-    let type = 'normal';
-    if (/^\[\s*\]$|^\{\s*\}$/.test(arg)) {
-      type = 'empty';
-    }
-    else if (/^_+$/.test(arg)) {
-      type = 'any';
-    }
-    return {
-      name: type, value: arg
-    }
-  });
-}
-
 function matchArgs(args, typeList) {
   for (let i = 0; i < typeList.length; ++i) {
     let type = typeList[i], arg = args[i];
@@ -55,15 +61,17 @@ function matchArgs(args, typeList) {
   }
 }
 
+function makeCond(cond) {
+  switch (typeof cond) {
+    case 'function': return cond;
+    case 'boolean': return () => cond;
+    default: return () => false;
+  }
+}
+
 function when(...guards) {
-  return condMark.add((...args) => guards.every(cond => {
-    if (typeof cond === 'boolean') {
-      cond = () => cond;
-    } else if (typeof cond !== 'function') {
-      cond = () => false;
-    }
-    return cond(...args);
-  }));
+  return condMark.add((...args) =>
+    guards.every(cond => makeCond(cond)(...args)))
 }
 
 function match(...defs) {

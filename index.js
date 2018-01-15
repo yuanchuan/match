@@ -1,6 +1,7 @@
-const makeMark = type => ({
+const condMark = {
   symbol: {
-    type, name: '__mark__' + Math.random()
+    type: 'condition',
+    name: '__mark__' + Math.random()
   },
   add(fn) {
     let { name, type } = this.symbol;
@@ -12,19 +13,12 @@ const makeMark = type => ({
     let { name, type } = this.symbol;
     return fn[name] === type;
   }
-});
+}
 
-const condMark = makeMark('condition');
-const cachedArgTypeList = new WeakMap();
-
-function getArgTypeList(def) {
-  let typeList = cachedArgTypeList.get(def);
-  if (typeList) return typeList;
-
+function getArgTypes(def) {
   let args = String(def).match(/\((.+)\) (=>|\{)/) || [];
   args = (args[1] || '').split(/, /);
-
-  cachedArgTypeList.set(def, typeList = args.map(arg => {
+  return args.map(arg => {
     let type = 'normal';
     if (/^\[\s*\]$|^\{\s*\}$/.test(arg)) {
       type = 'empty';
@@ -35,9 +29,7 @@ function getArgTypeList(def) {
     return {
       name: type, value: arg
     }
-  }));
-
-  return typeList;
+  });
 }
 
 function toGroup(defs) {
@@ -61,7 +53,7 @@ function matchArgs(args, typeList) {
   }
 }
 
-function makeCond(cond) {
+function makeGuard(cond) {
   switch (typeof cond) {
     case 'function': return cond;
     case 'boolean': return () => cond;
@@ -69,24 +61,25 @@ function makeCond(cond) {
   }
 }
 
-function when(...guards) {
-  return condMark.add((...args) =>
-    guards.every(cond => makeCond(cond)(...args)))
+function when(cond) {
+  let guard = makeGuard(cond);
+  return condMark.add(guard);
 }
 
 function match(...defs) {
   let groups = toGroup(defs);
+  let typeList = defs.map(getArgTypes);
   return (...args) => {
     let argsLength = args.length;
     for (let i = 0; i < groups.length; ++i) {
       let { def, cond } = groups[i];
-      if (argsLength != def.length) {
+      if (argsLength !== def.length) {
         continue;
       }
       if (cond && !cond(...args)) {
         continue;
       }
-      if (matchArgs(args, getArgTypeList(def))) {
+      if (matchArgs(args, typeList[i])) {
         return def(...args);
       }
     }
